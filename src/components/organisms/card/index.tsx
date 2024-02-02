@@ -3,6 +3,9 @@ import { ElementContainer } from "../../atoms/element-container";
 import { dracula } from "../../../styles/theme";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { IoMdMale } from "react-icons/io";
+import { useMemo } from "react";
+import { Gender } from "@prisma/client";
+import { IoMaleFemale, IoFemale } from "react-icons/io5";
 
 const flexStyled = {
   border: "2px solid transparent",
@@ -18,13 +21,25 @@ type CardProps = {
   data: {
     image: string
     name: string
+    gender: string
   }
 } & FlexProps;
 
 export function Card({
-  data: { image, name },
+  data: { image, name, gender },
   ...props
 }: CardProps) {
+
+  const genderIcon = useMemo(() => {
+    switch (gender) {
+      case Gender.FEMALE:
+        return IoFemale
+      case Gender.MALE:
+        return IoMdMale
+      default:
+        return IoMaleFemale
+    }
+  }, [gender]);
 
   return (
     <ElementContainer
@@ -35,8 +50,7 @@ export function Card({
       m="2"
     >
       <Flex h="100%" direction="column" w="100%"
-      position="relative"
-
+       position="relative"
       >
         <Box borderRadius="6" w="100%" h="260px" overflow="hidden" bg="#fff">
           <Image
@@ -51,7 +65,7 @@ export function Card({
           <Text fontWeight="medium">
             {name}
           </Text>
-          <Icon as={IoMdMale} ml="2"/>
+          <Icon as={genderIcon} ml="2"/>
         </Flex>
         <Divider orientation="horizontal" w="100%" mt="4" mb="4" />
         <HStack spacing={2}>

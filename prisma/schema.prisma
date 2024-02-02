@@ -17,7 +17,7 @@ enum Users_role {
 enum Gender {
   MALE
   FEMALE
-  OTHER
+  LGTV
 }
 
 model Users {

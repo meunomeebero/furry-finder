@@ -4,7 +4,6 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { CustomSessionProvider } from "../states/contexts/custom-session-context";
 import { googleAuthConfigs } from "../configs/google-auth";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { Login } from "../components/organisms/login-button";
 import './styles.scss';
 
 const queryClient = new QueryClient();
@@ -15,7 +14,6 @@ function MyApp({ Component, pageProps }) {
       <GoogleOAuthProvider clientId={googleAuthConfigs.clientID}>
         <ChakraProvider theme={theme}>
           <CustomSessionProvider>
-            <Login/>
             <Component {...pageProps} />
           </CustomSessionProvider>
         </ChakraProvider>

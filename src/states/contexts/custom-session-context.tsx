@@ -16,41 +16,31 @@ export type User = {
 
 export interface CustomSessionContextProps {
   data: { user: User };
-  isActive: boolean;
-  validateToken(token: string): Promise<void>;
+  validateToken(token: string): Promise<any>;
   logout(): void;
 }
 
 export const CustomSessionContext = createContext({} as CustomSessionContextProps);
 
 export function CustomSessionProvider({ children }) {
-  const [isActive, setIsActive] = useState(true);
-
   const { data, refetch } = useQuery('me', async () => {
     const token = sessionStorage.getItem('token');
     if (token) {
       const data = await api.getMe(token);
       if (data) {
         AxiosAPI.token = token;
-        return { user: data };
+        const { data: userData } = await axios.get('/api/v1/users/me?id=' + data.id)
+        return { user: userData };
       } else {
         sessionStorage.removeItem('token');
       }
     }
   });
 
-  useEffect(() => {
-    if (data?.user) {
-      axios.get('/api/v1/users/status', { params: { userId: data.user.id } })
-      .then(response => {
-        setIsActive(response.data.isActive);
-      });
-    }
-  }, [data]);
-
   const validateToken = useCallback(async (token: string) => {
     sessionStorage.setItem('token', token);
-    refetch();
+    const res = await refetch();
+    return res.data.user
   }, [refetch]);
 
   const logout = useCallback(() => {
@@ -59,7 +49,7 @@ export function CustomSessionProvider({ children }) {
   }, [refetch]);
 
   return (
-    <CustomSessionContext.Provider value={{ data, validateToken, logout, isActive }}>
+    <CustomSessionContext.Provider value={{ data, validateToken, logout }}>
       {children}
     </CustomSessionContext.Provider>
   );

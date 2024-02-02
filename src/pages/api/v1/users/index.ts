@@ -5,7 +5,6 @@ import { prismaClient } from "../../_prisma";
 
 export const getFFUsers = async (token?: string) => {
   const myMatchs: number[] = [];
-
   if (token) {
     const me = await api.getMe(token) as Users;
     const ids = await prismaClient.matchs.findMany({
@@ -19,23 +18,30 @@ export const getFFUsers = async (token?: string) => {
 
     myMatchs.push(...ids, me.id);
   }
-
-  return prismaClient.users.findMany({
+  console.log('myMatchs', myMatchs)
+  const ff = await prismaClient.users.findFirst({
     where: {
-      role: Users_role.FURRY_FINDER_USER,
-      id: {
-        notIn: myMatchs,
+      AND: {
+        role: Users_role.FURRY_FINDER_USER,
+        NOT: {
+          id: {
+            in: myMatchs
+          }
+        }
       }
     },
   })
+
+  return ff;
 }
 
-export async function handler(req: NextApiRequest, res: NextApiResponse) {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   switch(req.method) {
     case 'GET':
-      return res.json(getFFUsers(req.body.token));
+      const result = await getFFUsers(req.query.token as string)
+      return res.json(result);
     case 'PATCH':
-      const { token, gender } = req.body;
+      const { token, gender, profileName } = req.body;
       const me = await api.getMe(token);
       if (me.role != Users_role.FURRY_FINDER_USER) {
         await prismaClient.users.update({
@@ -45,10 +51,16 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
           data: {
             role: Users_role.FURRY_FINDER_USER,
             gender,
+            profileName,
           }
         })
       }
 
       return res.json({ ok: true, })
+    default:
+      res.status(405).json({ error: 'Method not allowed' });
+        break;
   }
 }
+
+export default handler

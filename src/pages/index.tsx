@@ -5,8 +5,32 @@ import { Card } from "../components/organisms/card";
 import { GetServerSideProps } from "next";
 import { getFFUsers } from "./api/v1/users";
 import { Users } from "@prisma/client";
+import { useAuth } from "../states/hooks/use-auth";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { useQuery } from "react-query";
+import useSessionStorage from "../states/hooks/use-session-storage";
+import axios from "axios";
 
-export default function Feed({ users }: { users: Users[] }) {
+export default function Feed() {
+  const { data } = useAuth();
+  const router = useRouter();
+  const token = useSessionStorage('token', data);
+
+  useEffect(() => {
+    if (!data?.user) {
+      router.push('/login');
+    }
+  }, [data, router]);
+
+  const { data: users = [], refetch } = useQuery('furry', async () => {
+    if (token) {
+      const { data } = await axios.get('/api/v1/users?token=' + token )
+      return [data];
+    }
+    return [];
+  });
+
   return (
     <>
       <Head />
@@ -17,7 +41,8 @@ export default function Feed({ users }: { users: Users[] }) {
               <Card
                 data={{
                   image: u.image,
-                  name: u.name,
+                  name: u.profileName,
+                  gender: u.gender,
                 }}
               />
             ))}
@@ -28,12 +53,3 @@ export default function Feed({ users }: { users: Users[] }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async () => {
-  const users = await getFFUsers();
-
-  return {
-    props: {
-      users: JSON.parse(JSON.stringify(users)),
-    }
-  }
-}
