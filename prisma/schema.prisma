@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+enum Users_role {
+  USER
+  ADMIN
+  FURRY_FINDER_USER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model Users {
+  id                Int                    @id @default(autoincrement())
+  profileName       String?                @map("profile_name")
+  name              String                 @unique
+  image             String?
+  coverURL          String?                @map("cover_url")
+  tags              Json?
+  email             String                 @unique
+  github            String?                @unique
+  role              Users_role             @default(FURRY_FINDER_USER)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @default(now())
+  bio               String?                @db.Text
+  isActive          Boolean                @default(true) @map("is_active")
+  gender            Gender?                 @default(MALE)
+}
+
+model Matchs {
+  id      Int @id @default(autoincrement())
+  me Int
+  match   Int
+  @@unique([me, match])
+
+  @@map("matchs")
+}
+
+model MatchMessages {
+  id  Int @id @default(autoincrement())
+  from Int
+  to Int
+  @@map("match_messages")
+}
